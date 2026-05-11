@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>AI Image Detector</title>
+
+    <!-- GOOGLE FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Poppins',sans-serif;
+        }
+
+        body{
+
+            min-height:100vh;
+
+            background:
+            linear-gradient(
+            rgba(0,0,0,0.72),
+            rgba(0,0,0,0.72)
+            ),
+
+            url('https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1920&auto=format&fit=crop');
+
+            background-size:cover;
+            background-position:center;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            padding:25px;
+
+            overflow-x:hidden;
+        }
+
+        .container{
+
+            width:100%;
+            max-width:1250px;
+
+            display:grid;
+            grid-template-columns:1fr 1fr;
+
+            background:rgba(255,255,255,0.08);
+
+            backdrop-filter:blur(20px);
+
+            border:1px solid rgba(255,255,255,0.12);
+
+            border-radius:32px;
+
+            overflow:hidden;
+
+            box-shadow:
+            0 10px 50px rgba(0,0,0,0.45);
+        }
+
+        /* ==================================== */
+        /* LEFT SECTION */
+        /* ==================================== */
+
+        .left{
+
+            padding:65px 55px;
+
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+        }
+
+        .badge{
+
+            width:fit-content;
+
+            padding:10px 18px;
+
+            border-radius:50px;
+
+            background:rgba(255,255,255,0.08);
+
+            border:1px solid rgba(255,255,255,0.12);
+
+            color:#00e5ff;
+
+            font-size:14px;
+
+            margin-bottom:28px;
+        }
+
+        h1{
+
+            color:white;
+
+            font-size:62px;
+
+            line-height:1.1;
+
+            margin-bottom:20px;
+        }
+
+        h1 span{
+            color:#00e5ff;
+        }
+
+        .description{
+
+            color:rgba(255,255,255,0.75);
+
+            line-height:1.9;
+
+            font-size:16px;
+
+            margin-bottom:35px;
+        }
+
+        /* ==================================== */
+        /* UPLOAD BOX */
+        /* ==================================== */
+
+        .upload-box{
+
+            position:relative;
+
+            width:100%;
+            height:280px;
+
+            border:2px dashed rgba(255,255,255,0.2);
+
+            border-radius:28px;
+
+            background:rgba(255,255,255,0.04);
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;
+
+            overflow:hidden;
+
+            cursor:pointer;
+
+            transition:0.35s ease;
+        }
+
+        .upload-box:hover{
+
+            border-color:#00e5ff;
+
+            transform:translateY(-3px);
+
+            background:rgba(255,255,255,0.06);
+        }
+
+        .upload-content{
+
+            text-align:center;
+
+            z-index:2;
+
+            padding:20px;
+        }
+
+        .upload-content i{
+
+            font-size:70px;
+
+            color:#00e5ff;
+
+            margin-bottom:18px;
+        }
+
+        .upload-content h3{
+
+            color:white;
+
+            font-size:24px;
+
+            margin-bottom:10px;
+        }
+
+        .upload-content p{
+
+            color:rgba(255,255,255,0.65);
+
+            font-size:14px;
+        }
+
+        .preview-image{
+
+            position:absolute;
+
+            width:100%;
+            height:100%;
+
+            object-fit:cover;
+
+            top:0;
+            left:0;
+
+            display:none;
+        }
+
+        input[type="file"]{
+            display:none;
+        }
+
+        /* ==================================== */
+        /* BUTTONS */
+        /* ==================================== */
+
+        .buttons{
+
+            display:flex;
+
+            gap:18px;
+
+            margin-top:32px;
+        }
+
+        button{
+
+            flex:1;
+
+            padding:16px;
+
+            border:none;
+
+            border-radius:18px;
+
+            font-size:16px;
+
+            font-weight:600;
+
+            cursor:pointer;
+
+            transition:0.3s;
+        }
+
+        .predict-btn{
+
+            background:
+            linear-gradient(
+            45deg,
+            #00e5ff,
+            #0077ff
+            );
+
+            color:white;
+
+            box-shadow:
+            0 10px 25px rgba(0,229,255,0.25);
+        }
+
+        .predict-btn:hover{
+
+            transform:translateY(-3px);
+
+            box-shadow:
+            0 15px 30px rgba(0,229,255,0.35);
+        }
+
+        .clear-btn{
+
+            background:rgba(255,255,255,0.08);
+
+            color:white;
+        }
+
+        .clear-btn:hover{
+
+            background:rgba(255,255,255,0.15);
+        }
+
+        /* ==================================== */
+        /* RIGHT SECTION */
+        /* ==================================== */
+
+        .right{
+
+            padding:30px;
+
+            background:rgba(255,255,255,0.04);
+
+            position:relative;
+        }
+
+        .preview-container{
+
+            width:100%;
+            height:100%;
+
+            min-height:650px;
+
+            border-radius:28px;
+
+            overflow:hidden;
+
+            position:relative;
+
+            background:rgba(255,255,255,0.04);
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .preview-container img{
+
+            width:100%;
+            height:100%;
+
+            object-fit:cover;
+        }
+
+        .default-text{
+
+            text-align:center;
+
+            color:rgba(255,255,255,0.5);
+        }
+
+        .default-text i{
+
+            font-size:100px;
+
+            margin-bottom:20px;
+        }
+
+        /* ==================================== */
+        /* LOADER */
+        /* ==================================== */
+
+        .loader{
+
+            width:65px;
+            height:65px;
+
+            border:5px solid rgba(255,255,255,0.12);
+
+            border-top:5px solid #00e5ff;
+
+            border-radius:50%;
+
+            animation:spin 1s linear infinite;
+
+            position:absolute;
+
+            display:none;
+
+            z-index:5;
+        }
+
+        @keyframes spin{
+
+            100%{
+                transform:rotate(360deg);
+            }
+        }
+
+        /* ==================================== */
+        /* RESULT BOX */
+        /* ==================================== */
+
+        .result-box{
+
+            position:absolute;
+
+            left:20px;
+            right:20px;
+            bottom:20px;
+
+            background:rgba(0,0,0,0.72);
+
+            backdrop-filter:blur(18px);
+
+            border-radius:24px;
+
+            padding:24px;
+
+            border:1px solid rgba(255,255,255,0.1);
+
+            display:none;
+
+            animation:fadeUp 0.5s ease;
+        }
+
+        @keyframes fadeUp{
+
+            from{
+                opacity:0;
+                transform:translateY(20px);
+            }
+
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        .result-label{
+
+            color:#00e5ff;
+
+            font-size:13px;
+
+            letter-spacing:2px;
+
+            margin-bottom:12px;
+
+            text-transform:uppercase;
+        }
+
+        .prediction{
+
+            font-size:38px;
+
+            font-weight:700;
+
+            margin-bottom:22px;
+        }
+
+        .real{
+            color:#22c55e;
+        }
+
+        .fake{
+            color:#ff3b5f;
+        }
+
+        .confidence-top{
+
+            display:flex;
+
+            justify-content:space-between;
+
+            margin-bottom:12px;
+
+            color:white;
+
+            font-size:15px;
+        }
+
+        .progress-bar{
+
+            width:100%;
+
+            height:20px;
+
+            background:rgba(255,255,255,0.08);
+
+            border-radius:50px;
+
+            overflow:hidden;
+        }
+
+        .progress{
+
+            width:0%;
+
+            height:100%;
+
+            border-radius:50px;
+
+            transition:1s ease;
+        }
+
+        .confidence-text{
+
+            text-align:center;
+
+            margin-top:16px;
+
+            color:white;
+
+            font-size:18px;
+
+            font-weight:600;
+        }
+
+        /* ==================================== */
+        /* RESPONSIVE */
+        /* ==================================== */
+
+        @media(max-width:980px){
+
+            .container{
+                grid-template-columns:1fr;
+            }
+
+            .left{
+                padding:45px 35px;
+            }
+
+            h1{
+                font-size:44px;
+            }
+
+            .preview-container{
+                min-height:500px;
+            }
+        }
+
+        @media(max-width:600px){
+
+            .buttons{
+                flex-direction:column;
+            }
+
+            h1{
+                font-size:36px;
+            }
+
+            .upload-box{
+                height:240px;
+            }
+
+            .preview-container{
+                min-height:400px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- LEFT -->
+
+        <div class="left">
+
+            <div class="badge">
+                AI Powered Detection System
+            </div>
+
+            <h1>
+                Detect <span>AI Generated</span><br>
+                Images Instantly
+            </h1>
+
+            <p class="description">
+                Upload any image and our Deep Learning CNN model
+                will analyze whether the image is REAL or AI GENERATED
+                with high confidence and accuracy.
+            </p>
+
+            <!-- UPLOAD -->
+
+            <label class="upload-box">
+
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/*">
+
+                <div
+                    class="upload-content"
+                    id="uploadContent">
+
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                    <h3>Upload Your Image</h3>
+
+                    <p>
+                        JPG, PNG & JPEG Supported
+                    </p>
+
+                </div>
+
+                <img
+                    id="leftPreview"
+                    class="preview-image">
+
+            </label>
+
+            <!-- BUTTONS -->
+
+            <div class="buttons">
+
+                <button
+                    class="predict-btn"
+                    onclick="predictImage()">
+
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                    Predict Now
+
+                </button>
+
+                <button
+                    class="clear-btn"
+                    onclick="clearImage()">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                    Clear
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+
+        <div class="right">
+
+            <div class="preview-container">
+
+                <div
+                    class="default-text"
+                    id="defaultText">
+
+                    <i class="fa-solid fa-image"></i>
+
+                    <h2>No Image Selected</h2>
+
+                </div>
+
+                <img
+                    id="rightPreview"
+                    style="display:none;">
+
+                <!-- LOADER -->
+
+                <div
+                    class="loader"
+                    id="loader">
+                </div>
+
+                <!-- RESULT -->
+
+                <div
+                    class="result-box"
+                    id="resultBox">
+
+                    <div class="result-label">
+                        Detection Result
+                    </div>
+
+                    <div
+                        class="prediction"
+                        id="predictionText">
+                    </div>
+
+                    <div class="confidence-top">
+
+                        <span>
+                            Confidence Level
+                        </span>
+
+                        <span id="confidencePercent">
+                            0%
+                        </span>
+
+                    </div>
+
+                    <div class="progress-bar">
+
+                        <div
+                            class="progress"
+                            id="progress">
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="confidence-text"
+                        id="confidenceText">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<script>
+
+    const imageInput =
+    document.getElementById("imageInput")
+
+    const uploadContent =
+    document.getElementById("uploadContent")
+
+    const leftPreview =
+    document.getElementById("leftPreview")
+
+    const rightPreview =
+    document.getElementById("rightPreview")
+
+    const defaultText =
+    document.getElementById("defaultText")
+
+    const loader =
+    document.getElementById("loader")
+
+    const resultBox =
+    document.getElementById("resultBox")
+
+    // ========================================
+    // IMAGE PREVIEW
+    // ========================================
+
+    imageInput.addEventListener("change",function(){
+
+        const file = this.files[0]
+
+        if(file){
+
+            const reader = new FileReader()
+
+            reader.onload = function(){
+
+                leftPreview.src = reader.result
+                rightPreview.src = reader.result
+
+                leftPreview.style.display = "block"
+                rightPreview.style.display = "block"
+
+                uploadContent.style.display = "none"
+
+                defaultText.style.display = "none"
+            }
+
+            reader.readAsDataURL(file)
+        }
+    })
+
+    // ========================================
+    // PREDICT IMAGE
+    // ========================================
+
+    async function predictImage(){
+
+        const file =
+        imageInput.files[0]
+
+        if(!file){
+
+            alert(
+                "Please upload an image first"
+            )
+
+            return
+        }
+
+        loader.style.display = "block"
+
+        resultBox.style.display = "none"
+
+        const formData =
+        new FormData()
+
+        formData.append(
+            "file",
+            file
+        )
+
+        try{
+
+            const response =
+            await fetch(
+
+                "http://127.0.0.1:5000/predict",
+
+                {
+                    method:"POST",
+                    body:formData
+                }
+            )
+
+            const data =
+            await response.json()
+
+            loader.style.display = "none"
+
+            resultBox.style.display = "block"
+
+            const predictionText =
+            document.getElementById(
+                "predictionText"
+            )
+
+            const confidencePercent =
+            document.getElementById(
+                "confidencePercent"
+            )
+
+            const confidenceText =
+            document.getElementById(
+                "confidenceText"
+            )
+
+            const progress =
+            document.getElementById(
+                "progress"
+            )
+
+            const confidence =
+            (data.confidence_score * 100)
+            .toFixed(2)
+
+            predictionText.innerText =
+            data.prediction
+
+            confidencePercent.innerText =
+            confidence + "%"
+
+            confidenceText.innerText =
+            confidence +
+            "% Confidence Score"
+
+            progress.style.width =
+            confidence + "%"
+
+            // REAL
+
+            if(data.prediction === "REAL"){
+
+                predictionText.className =
+                "prediction real"
+
+                progress.style.background =
+                "linear-gradient(90deg,#22c55e,#16a34a)"
+            }
+
+            // FAKE
+
+            else{
+
+                predictionText.className =
+                "prediction fake"
+
+                progress.style.background =
+                "linear-gradient(90deg,#ff3b5f,#ff1744)"
+            }
+
+        }
+
+        catch(error){
+
+            loader.style.display = "none"
+
+            alert(
+                "Backend connection error"
+            )
+
+            console.log(error)
+        }
+    }
+
+    // ========================================
+    // CLEAR IMAGE
+    // ========================================
+
+    function clearImage(){
+
+        imageInput.value = ""
+
+        leftPreview.style.display = "none"
+        rightPreview.style.display = "none"
+
+        uploadContent.style.display = "block"
+
+        defaultText.style.display = "block"
+
+        resultBox.style.display = "none"
+    }
+
+</script>
+
+</body>
+
+</html>
