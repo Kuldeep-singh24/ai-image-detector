@@ -27,7 +27,7 @@ MODEL_PATH = "deepfake_detector_model.h5"
 # PUT YOUR GOOGLE DRIVE FILE ID HERE
 # ============================================
 
-FILE_ID = "YOUR_GOOGLE_DRIVE_FILE_ID"
+FILE_ID = "1AOOuNsBM85XoDLLl4LhUSwdFPbsqqA7q"
 
 # ============================================
 # DOWNLOAD MODEL IF NOT EXISTS
