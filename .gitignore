@@ -1,27 +1,16 @@
-# Python
 __pycache__/
-*.pyc
-
-# Virtual Environment
 venv/
 env/
-
-# Temporary files
 temp.jpg
-
-# Dataset folders
-dataset/
-datasets/
-train/
-test/
-
-# Jupyter
 .ipynb_checkpoints/
-
-# Large AI files
 *.zip
 *.7z
-
-# OS
-.DS_Store
-Thumbs.db
+*.rar
+*.csv
+*.png
+*.jpg
+*.jpeg
+train/
+test/
+dataset/
+datasets/
