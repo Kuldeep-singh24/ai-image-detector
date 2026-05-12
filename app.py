@@ -18,55 +18,67 @@ app = Flask(__name__)
 CORS(app)
 
 # ======================================================
-# MODEL SETTINGS
-# ======================================================
-
-# NEW KERAS MODEL
-MODEL_PATH = "deepfake_detector.keras"
-
-# NEW GOOGLE DRIVE FILE ID
-FILE_ID = "1V4SDKVnF7zZj9nW_VdQ7C2-nthOMNlY_"
-
-# ======================================================
-# DOWNLOAD MODEL FROM GOOGLE DRIVE
-# ======================================================
-
-if not os.path.exists(MODEL_PATH):
-
-    print("Downloading AI model...")
-
-    url = f"https://drive.google.com/uc?id={FILE_ID}"
-
-    gdown.download(
-        url,
-        MODEL_PATH,
-        quiet=False
-    )
-
-    print("Model downloaded successfully!")
-
-# ======================================================
-# LOAD MODEL
-# ======================================================
-
-print("Loading model...")
-
-# compile=False avoids compatibility issues
-model = tf.keras.models.load_model(
-
-    MODEL_PATH,
-
-    compile=False
-
-)
-
-print("Model loaded successfully!")
-
-# ======================================================
-# IMAGE SETTINGS
+# SETTINGS
 # ======================================================
 
 IMG_SIZE = 128
+
+MODEL_PATH = "deepfake_detector.keras"
+
+# GOOGLE DRIVE FILE ID
+FILE_ID = "1V4SDKVnF7zZj9nW_VdQ7C2-nthOMNlY_"
+
+# GLOBAL MODEL VARIABLE
+model = None
+
+# ======================================================
+# DOWNLOAD MODEL
+# ======================================================
+
+try:
+
+    # Download model if not exists
+    if not os.path.exists(MODEL_PATH):
+
+        print("\nDownloading AI model...\n")
+
+        url = f"https://drive.google.com/uc?id={FILE_ID}"
+
+        gdown.download(
+
+            url,
+
+            MODEL_PATH,
+
+            quiet=False
+
+        )
+
+        print("\nModel downloaded successfully!\n")
+
+    # ==================================================
+    # LOAD MODEL
+    # ==================================================
+
+    print("\nLoading model...\n")
+
+    model = tf.keras.models.load_model(
+
+        MODEL_PATH,
+
+        compile=False
+
+    )
+
+    print("\nModel loaded successfully!\n")
+
+except Exception as e:
+
+    print("\n===================================")
+    print("MODEL LOADING ERROR")
+    print("===================================\n")
+
+    print(str(e))
 
 # ======================================================
 # HOME ROUTE
@@ -79,7 +91,21 @@ def home():
     return render_template("index.html")
 
 # ======================================================
-# PREDICT ROUTE
+# HEALTH CHECK ROUTE
+# ======================================================
+
+@app.route("/health")
+
+def health():
+
+    return jsonify({
+
+        "status": "running"
+
+    })
+
+# ======================================================
+# PREDICTION ROUTE
 # ======================================================
 
 @app.route("/predict", methods=["POST"])
@@ -88,9 +114,21 @@ def predict():
 
     try:
 
-        # ==========================================
+        # ==============================================
+        # CHECK MODEL
+        # ==============================================
+
+        if model is None:
+
+            return jsonify({
+
+                "error": "Model not loaded"
+
+            })
+
+        # ==============================================
         # CHECK FILE
-        # ==========================================
+        # ==============================================
 
         if "file" not in request.files:
 
@@ -102,17 +140,17 @@ def predict():
 
         file = request.files["file"]
 
-        # ==========================================
+        # ==============================================
         # SAVE TEMP IMAGE
-        # ==========================================
+        # ==============================================
 
         file_path = "temp.jpg"
 
         file.save(file_path)
 
-        # ==========================================
+        # ==============================================
         # LOAD IMAGE
-        # ==========================================
+        # ==============================================
 
         img = image.load_img(
 
@@ -122,21 +160,21 @@ def predict():
 
         )
 
-        # ==========================================
+        # ==============================================
         # IMAGE TO ARRAY
-        # ==========================================
+        # ==============================================
 
         img_array = image.img_to_array(img)
 
-        # ==========================================
+        # ==============================================
         # NORMALIZE
-        # ==========================================
+        # ==============================================
 
         img_array = img_array / 255.0
 
-        # ==========================================
+        # ==============================================
         # EXPAND DIMENSIONS
-        # ==========================================
+        # ==============================================
 
         img_array = np.expand_dims(
 
@@ -146,9 +184,9 @@ def predict():
 
         )
 
-        # ==========================================
+        # ==============================================
         # MODEL PREDICTION
-        # ==========================================
+        # ==============================================
 
         prediction = model.predict(
 
@@ -156,9 +194,9 @@ def predict():
 
         )[0][0]
 
-        # ==========================================
+        # ==============================================
         # CONFIDENCE SCORE
-        # ==========================================
+        # ==============================================
 
         confidence_score = (
 
@@ -170,9 +208,9 @@ def predict():
 
         )
 
-        # ==========================================
+        # ==============================================
         # FINAL RESULT
-        # ==========================================
+        # ==============================================
 
         if prediction > 0.5:
 
@@ -182,17 +220,17 @@ def predict():
 
             result = "REAL"
 
-        # ==========================================
+        # ==============================================
         # DELETE TEMP FILE
-        # ==========================================
+        # ==============================================
 
         if os.path.exists(file_path):
 
             os.remove(file_path)
 
-        # ==========================================
+        # ==============================================
         # RETURN RESPONSE
-        # ==========================================
+        # ==============================================
 
         return jsonify({
 
@@ -212,7 +250,7 @@ def predict():
         })
 
 # ======================================================
-# RUN SERVER
+# START SERVER
 # ======================================================
 
 if __name__ == "__main__":
@@ -221,8 +259,6 @@ if __name__ == "__main__":
 
         host="0.0.0.0",
 
-        port=int(os.environ.get("PORT", 5000)),
-
-        debug=True
+        port=int(os.environ.get("PORT", 5000))
 
     )
