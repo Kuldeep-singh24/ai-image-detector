@@ -18,20 +18,16 @@ app = Flask(__name__)
 CORS(app)
 
 # ======================================================
-# MODEL DOWNLOAD FROM GOOGLE DRIVE
+# MODEL SETTINGS
 # ======================================================
 
 MODEL_PATH = "deepfake_detector_model.h5"
 
-# ============================================
-# PUT YOUR GOOGLE DRIVE FILE ID HERE
-# ============================================
-
 FILE_ID = "1AOOuNsBM85XoDLLl4LhUSwdFPbsqqA7q"
 
-# ============================================
-# DOWNLOAD MODEL IF NOT EXISTS
-# ============================================
+# ======================================================
+# DOWNLOAD MODEL FROM GOOGLE DRIVE
+# ======================================================
 
 if not os.path.exists(MODEL_PATH):
 
@@ -53,8 +49,15 @@ if not os.path.exists(MODEL_PATH):
 
 print("Loading model...")
 
+# IMPORTANT FIX:
+# compile=False avoids Keras compatibility errors
+
 model = tf.keras.models.load_model(
-    MODEL_PATH
+
+    MODEL_PATH,
+
+    compile=False
+
 )
 
 print("Model loaded successfully!")
@@ -183,10 +186,12 @@ def predict():
         # DELETE TEMP FILE
         # ==========================================
 
-        os.remove(file_path)
+        if os.path.exists(file_path):
+
+            os.remove(file_path)
 
         # ==========================================
-        # RETURN JSON RESPONSE
+        # RETURN RESPONSE
         # ==========================================
 
         return jsonify({
