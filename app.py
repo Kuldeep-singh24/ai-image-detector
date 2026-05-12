@@ -21,9 +21,11 @@ CORS(app)
 # MODEL SETTINGS
 # ======================================================
 
-MODEL_PATH = "deepfake_detector_model.h5"
+# NEW KERAS MODEL
+MODEL_PATH = "deepfake_detector.keras"
 
-FILE_ID = "1AOOuNsBM85XoDLLl4LhUSwdFPbsqqA7q"
+# NEW GOOGLE DRIVE FILE ID
+FILE_ID = "1V4SDKVnF7zZj9nW_VdQ7C2-nthOMNlY_"
 
 # ======================================================
 # DOWNLOAD MODEL FROM GOOGLE DRIVE
@@ -49,9 +51,7 @@ if not os.path.exists(MODEL_PATH):
 
 print("Loading model...")
 
-# IMPORTANT FIX:
-# compile=False avoids Keras compatibility errors
-
+# compile=False avoids compatibility issues
 model = tf.keras.models.load_model(
 
     MODEL_PATH,
