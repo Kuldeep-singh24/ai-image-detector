@@ -23,6 +23,7 @@ CORS(app)
 
 IMG_SIZE = 128
 
+# NEW KERAS MODEL
 MODEL_PATH = "deepfake_detector.keras"
 
 # GOOGLE DRIVE FILE ID
@@ -32,15 +33,16 @@ FILE_ID = "1V4SDKVnF7zZj9nW_VdQ7C2-nthOMNlY_"
 model = None
 
 # ======================================================
-# DOWNLOAD MODEL
+# DOWNLOAD MODEL FUNCTION
 # ======================================================
 
-try:
+def download_model():
 
-    # Download model if not exists
     if not os.path.exists(MODEL_PATH):
 
-        print("\nDownloading AI model...\n")
+        print("\n===================================")
+        print("DOWNLOADING MODEL")
+        print("===================================\n")
 
         url = f"https://drive.google.com/uc?id={FILE_ID}"
 
@@ -54,31 +56,55 @@ try:
 
         )
 
-        print("\nModel downloaded successfully!\n")
+        print("\n===================================")
+        print("MODEL DOWNLOADED SUCCESSFULLY")
+        print("===================================\n")
 
-    # ==================================================
-    # LOAD MODEL
-    # ==================================================
+# ======================================================
+# LOAD MODEL FUNCTION
+# ======================================================
 
-    print("\nLoading model...\n")
+def load_ai_model():
 
-    model = tf.keras.models.load_model(
+    global model
 
-        MODEL_PATH,
+    # Already loaded
+    if model is not None:
 
-        compile=False
+        return model
 
-    )
+    try:
 
-    print("\nModel loaded successfully!\n")
+        # Download if missing
+        download_model()
 
-except Exception as e:
+        print("\n===================================")
+        print("LOADING MODEL")
+        print("===================================\n")
 
-    print("\n===================================")
-    print("MODEL LOADING ERROR")
-    print("===================================\n")
+        model = tf.keras.models.load_model(
 
-    print(str(e))
+            MODEL_PATH,
+
+            compile=False
+
+        )
+
+        print("\n===================================")
+        print("MODEL LOADED SUCCESSFULLY")
+        print("===================================\n")
+
+        return model
+
+    except Exception as e:
+
+        print("\n===================================")
+        print("MODEL LOADING ERROR")
+        print("===================================\n")
+
+        print(str(e))
+
+        return None
 
 # ======================================================
 # HOME ROUTE
@@ -91,7 +117,7 @@ def home():
     return render_template("index.html")
 
 # ======================================================
-# HEALTH CHECK ROUTE
+# HEALTH CHECK
 # ======================================================
 
 @app.route("/health")
@@ -105,7 +131,7 @@ def health():
     })
 
 # ======================================================
-# PREDICTION ROUTE
+# PREDICT ROUTE
 # ======================================================
 
 @app.route("/predict", methods=["POST"])
@@ -114,21 +140,23 @@ def predict():
 
     try:
 
-        # ==============================================
-        # CHECK MODEL
-        # ==============================================
+        # ==========================================
+        # LOAD MODEL
+        # ==========================================
 
-        if model is None:
+        loaded_model = load_ai_model()
+
+        if loaded_model is None:
 
             return jsonify({
 
-                "error": "Model not loaded"
+                "error": "Model failed to load"
 
             })
 
-        # ==============================================
+        # ==========================================
         # CHECK FILE
-        # ==============================================
+        # ==========================================
 
         if "file" not in request.files:
 
@@ -140,17 +168,17 @@ def predict():
 
         file = request.files["file"]
 
-        # ==============================================
-        # SAVE TEMP IMAGE
-        # ==============================================
+        # ==========================================
+        # SAVE IMAGE
+        # ==========================================
 
         file_path = "temp.jpg"
 
         file.save(file_path)
 
-        # ==============================================
+        # ==========================================
         # LOAD IMAGE
-        # ==============================================
+        # ==========================================
 
         img = image.load_img(
 
@@ -160,21 +188,21 @@ def predict():
 
         )
 
-        # ==============================================
+        # ==========================================
         # IMAGE TO ARRAY
-        # ==============================================
+        # ==========================================
 
         img_array = image.img_to_array(img)
 
-        # ==============================================
+        # ==========================================
         # NORMALIZE
-        # ==============================================
+        # ==========================================
 
         img_array = img_array / 255.0
 
-        # ==============================================
+        # ==========================================
         # EXPAND DIMENSIONS
-        # ==============================================
+        # ==========================================
 
         img_array = np.expand_dims(
 
@@ -184,19 +212,19 @@ def predict():
 
         )
 
-        # ==============================================
-        # MODEL PREDICTION
-        # ==============================================
+        # ==========================================
+        # PREDICT
+        # ==========================================
 
-        prediction = model.predict(
+        prediction = loaded_model.predict(
 
             img_array
 
         )[0][0]
 
-        # ==============================================
-        # CONFIDENCE SCORE
-        # ==============================================
+        # ==========================================
+        # CONFIDENCE
+        # ==========================================
 
         confidence_score = (
 
@@ -208,9 +236,9 @@ def predict():
 
         )
 
-        # ==============================================
-        # FINAL RESULT
-        # ==============================================
+        # ==========================================
+        # RESULT
+        # ==========================================
 
         if prediction > 0.5:
 
@@ -220,17 +248,17 @@ def predict():
 
             result = "REAL"
 
-        # ==============================================
-        # DELETE TEMP FILE
-        # ==============================================
+        # ==========================================
+        # DELETE TEMP IMAGE
+        # ==========================================
 
         if os.path.exists(file_path):
 
             os.remove(file_path)
 
-        # ==============================================
+        # ==========================================
         # RETURN RESPONSE
-        # ==============================================
+        # ==========================================
 
         return jsonify({
 
